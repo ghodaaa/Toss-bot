@@ -201,7 +201,18 @@ bot.action("usercontrol", async (ctx) => {
 
 });
 
-bot.launch();
+bot.launch({
+  dropPendingUpdates: true
+})
+.then(() => {
+  console.log("Bot Started");
+})
+.catch((err) => {
+  console.log(err);
+});
+
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
 
 app.listen(process.env.PORT || 3000, () => {
   console.log("Server Running");
