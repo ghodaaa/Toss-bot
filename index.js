@@ -352,7 +352,23 @@ bot.action("usercontrol", async (ctx) => {
     return;
   }
 
-  ctx.reply("👤 User Control Coming Soon");
+  ctx.reply(
+
+`👤 USER CONTROL
+
+Send command in this format:
+
+add dpid amount
+
+Example:
+add 1 500
+
+deduct dpid amount
+
+Example:
+deduct 1 200`
+
+  );
 
 });
 
@@ -407,6 +423,116 @@ bot.action(/bet_(.+)/, async (ctx) => {
 });
 
 bot.on("message", async (ctx) => {
+const userBetState = userState[ctx.from.id];
+
+if (userBetState && ctx.from.id !== ADMIN_ID) {
+
+const amount = Number(ctx.message.text);
+
+if (isNaN(amount) || amount <= 0) {
+  return ctx.reply("❌ Invalid Amount");
+}
+
+const user = await User.findOne({
+  telegramId: ctx.from.id
+});
+
+if (user.balance < amount) {
+  return ctx.reply("❌ Insufficient Balance");
+}
+
+user.balance -= amount;
+
+await user.save();
+
+await Bet.create({
+
+  userId: ctx.from.id,
+
+  tossId: userBetState.tossId,
+
+  team: userBetState.team,
+
+  amount
+
+});
+
+delete userState[ctx.from.id];
+
+return ctx.reply(
+
+`✅ Bet Placed
+
+🏏 Team: ${userBetState.team}
+💰 Amount: ₹${amount}`
+
+);
+
+}
+
+
+
+if (ctx.from.id === ADMIN_ID && ctx.message.text) {
+
+const text = ctx.message.text.split(" ");
+
+const action = text[0];
+
+const dpId = Number(text[1]);
+
+const amount = Number(text[2]);
+
+if (action === "add") {
+
+const user = await User.findOne({ dpId });
+
+if (!user) {
+  return ctx.reply("❌ User Not Found");
+}
+
+user.balance += amount;
+
+await user.save();
+
+return ctx.reply(
+
+`✅ Balance Added
+
+🆔 DP ID: ${dpId}
+💰 Amount: ₹${amount}`
+
+);
+
+}
+
+if (action === "deduct") {
+
+const user = await User.findOne({ dpId });
+
+if (!user) {
+  return ctx.reply("❌ User Not Found");
+}
+
+user.balance -= amount;
+
+if (user.balance < 0) {
+  user.balance = 0;
+}
+
+await user.save();
+
+return ctx.reply(
+
+`✅ Balance Deducted
+
+🆔 DP ID: ${dpId}
+💰 Amount: ₹${amount}`
+
+);
+
+}
+
+}
 
   if (ctx.from.id !== ADMIN_ID) return;
 
