@@ -373,9 +373,24 @@ bot.action("activetosses", async (ctx) => {
 
 ⏰ ${toss.matchTime}
 
-📌 Status: ${toss.status}`
+📌 Status: ${toss.status}`,
 
-    );
+{
+reply_markup: {
+inline_keyboard: [
+
+[
+{
+text: "⛔ Close Bets",
+callback_data: `close_${toss.tossId}`
+}
+]
+
+]
+}
+}
+
+);
 
   }
 
