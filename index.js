@@ -186,6 +186,55 @@ bot.action("wallet", async (ctx) => {
 
 });
 
+//=====MY BETS ====
+
+bot.action("mybets", async (ctx) => {
+
+  try {
+
+    const bets = await Bet.find({
+      userId: ctx.from.id
+    });
+
+    if (bets.length === 0) {
+      return ctx.reply("📜 No Bets Yet");
+    }
+
+    let message = "📜 YOUR BETS\n\n";
+
+    for (const bet of bets) {
+
+      const toss = await Toss.findOne({
+        tossId: bet.tossId
+      });
+
+      if (!toss) continue;
+
+      message +=
+
+`🏏 ${toss.teamA} vs ${toss.teamB}
+
+🎯 Team: ${bet.team}
+💰 Amount: ₹${bet.amount}
+📌 Status: ${bet.status}
+
+`;
+
+    }
+
+    ctx.reply(message);
+
+  }
+
+  catch (err) {
+
+    console.log(err);
+
+    ctx.reply("❌ Error Loading Bets");
+
+  }
+
+});
 
 
 // ================= MY BETS =================
