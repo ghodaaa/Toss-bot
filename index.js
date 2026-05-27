@@ -190,16 +190,6 @@ bot.action("wallet", async (ctx) => {
 
 // ================= MY BETS =================
 
-bot.action("mybets", async (ctx) => {
-
-  ctx.reply("📜 No Bets Yet");
-
-});
-
-
-
-// ================= ACTIVE TOSSES =================
-
 bot.action("tosses", async (ctx) => {
 
   const tosses = await Toss.find({
@@ -220,7 +210,25 @@ bot.action("tosses", async (ctx) => {
 
 ⏰ ${toss.matchTime}
 
-🎯 Bets Open`
+🎯 Select Team`,
+
+reply_markup: {
+inline_keyboard: [
+
+[
+{
+text: toss.teamA,
+callback_data: `bet_${toss.tossId}_${toss.teamA}`
+},
+
+{
+text: toss.teamB,
+callback_data: `bet_${toss.tossId}_${toss.teamB}`
+}
+]
+
+]
+}
 
     });
 
