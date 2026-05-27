@@ -265,6 +265,10 @@ Markup.button.callback("📊 Reports", "reports")
 ],
 
 [
+Markup.button.callback("🏆 Declare Result", "results")
+],
+
+[
 Markup.button.callback("👤 User Control", "usercontrol")
 ]
 
@@ -342,7 +346,57 @@ bot.action("reports", async (ctx) => {
 
 });
 
+// ==== RESULTS===
 
+bot.action("results", async (ctx) => {
+
+  if (ctx.from.id !== ADMIN_ID) {
+    return;
+  }
+
+  const tosses = await Toss.find({
+    status: "open"
+  });
+
+  if (tosses.length === 0) {
+    return ctx.reply("❌ No Active Tosses");
+  }
+
+  for (const toss of tosses) {
+
+    await ctx.reply(
+
+`🏏 ${toss.teamA} vs ${toss.teamB}
+
+🆔 Toss ID: ${toss.tossId}
+
+Select Winner`,
+
+{
+reply_markup: {
+inline_keyboard: [
+
+[
+{
+text: toss.teamA,
+callback_data: `result_${toss.tossId}_${toss.teamA}`
+},
+
+{
+text: toss.teamB,
+callback_data: `result_${toss.tossId}_${toss.teamB}`
+}
+]
+
+]
+}
+}
+
+    );
+
+  }
+
+});
 
 // ================= USER CONTROL =================
 
@@ -419,6 +473,79 @@ bot.action(/bet_(.+)/, async (ctx) => {
 💰 Send Bet Amount`
 
   );
+
+});
+
+bot.action(/result_(.+)/, async (ctx) => {
+
+if (ctx.from.id !== ADMIN_ID) {
+  return;
+}
+
+const data = ctx.match[1].split("_");
+
+const tossId = Number(data[0]);
+
+const winnerTeam = data[1];
+
+const toss = await Toss.findOne({
+  tossId
+});
+
+if (!toss) {
+  return ctx.reply("❌ Toss Not Found");
+}
+
+const bets = await Bet.find({
+  tossId,
+  status: "pending"
+});
+
+for (const bet of bets) {
+
+  if (bet.team === winnerTeam) {
+
+    const winAmount = bet.amount * 1.95;
+
+    const user = await User.findOne({
+      telegramId: bet.userId
+    });
+
+    user.balance += winAmount;
+
+    await user.save();
+
+    bet.status = "won";
+
+    await bet.save();
+
+  }
+
+  else {
+
+    bet.status = "lost";
+
+    await bet.save();
+
+  }
+
+}
+
+toss.status = "completed";
+
+toss.winner = winnerTeam;
+
+await toss.save();
+
+ctx.reply(
+
+`🏆 Result Declared
+
+🏏 Winner: ${winnerTeam}
+
+✅ Settlement Completed`
+
+);
 
 });
 
