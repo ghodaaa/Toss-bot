@@ -45,6 +45,25 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+const betSchema = new mongoose.Schema({
+
+  userId: Number,
+
+  tossId: Number,
+
+  team: String,
+
+  amount: Number,
+
+  status: {
+    type: String,
+    default: "pending"
+  }
+
+});
+
+const Bet = mongoose.model("Bet", betSchema);
+
 
 
 // ================= TOSSES =================
@@ -80,7 +99,7 @@ const Toss = mongoose.model("Toss", tossSchema);
 // ================= ADMIN STATE =================
 
 const adminState = {};
-
+const userState = {};
 
 
 // ================= SERVER =================
