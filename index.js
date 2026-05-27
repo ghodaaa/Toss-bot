@@ -351,6 +351,52 @@ bot.action("usercontrol", async (ctx) => {
 
 
 // ================= MESSAGE HANDLER =================
+bot.action(/bet_(.+)/, async (ctx) => {
+
+  const data = ctx.match[1].split("_");
+
+  const tossId = Number(data[0]);
+
+  const team = data[1];
+
+  const toss = await Toss.findOne({
+    tossId
+  });
+
+  if (!toss) {
+    return ctx.reply("❌ Toss Not Found");
+  }
+
+  if (toss.status !== "open") {
+    return ctx.reply("🚫 Bets Closed");
+  }
+
+  const user = await User.findOne({
+    telegramId: ctx.from.id
+  });
+
+  if (user.isBanned) {
+    return ctx.reply("❌ Account Banned");
+  }
+
+  if (user.holdBalance) {
+    return ctx.reply("⛔ Wallet On Hold");
+  }
+
+  userState[ctx.from.id] = {
+    tossId,
+    team
+  };
+
+  ctx.reply(
+
+`🏏 ${team}
+
+💰 Send Bet Amount`
+
+  );
+
+});
 
 bot.on("message", async (ctx) => {
 
