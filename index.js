@@ -389,6 +389,15 @@ inline_keyboard: [
 text: "⛔ Close Bets",
 callback_data: `close_${toss.tossId}`
 }
+],
+
+[
+{
+text: "🗑 Delete Toss",
+callback_data: `deletetoss_${toss.tossId}`
+}
+]
+
 ]
 
 ]
@@ -690,6 +699,41 @@ for (const bet of bets) {
 ctx.reply(message);
 
 });
+
+bot.action(/deletetoss_(.+)/, async (ctx) => {
+
+if (ctx.from.id !== ADMIN_ID) {
+  return;
+}
+
+const tossId = Number(ctx.match[1]);
+
+const toss = await Toss.findOne({
+  tossId
+});
+
+if (!toss) {
+  return ctx.reply("❌ Toss Not Found");
+}
+
+await Toss.deleteOne({
+  tossId
+});
+
+ctx.reply(
+
+`🗑 Toss Deleted
+
+🆔 Toss ID: ${tossId}
+
+✅ Bets History Safe`
+
+);
+
+});
+
+//======Bot on message========
+
 
 bot.on("message", async (ctx) => {
 const userBetState = userState[ctx.from.id];
