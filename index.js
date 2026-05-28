@@ -399,8 +399,6 @@ callback_data: `deletetoss_${toss.tossId}`
 ]
 
 ]
-
-]
 }
 }
 
