@@ -54,6 +54,11 @@ const betSchema = new mongoose.Schema({
   team: String,
 
   amount: Number,
+  
+  betTime: {
+  type: String,
+  default: () => new           Date().toLocaleTimeString()
+},
 
   status: {
     type: String,
@@ -406,9 +411,41 @@ bot.action("reports", async (ctx) => {
     return;
   }
 
-  ctx.reply("📊 Reports Coming Soon");
+  const tosses = await Toss.find();
+
+  if (tosses.length === 0) {
+    return ctx.reply("❌ No Tosses Found");
+  }
+
+  for (const toss of tosses) {
+
+    await ctx.reply(
+
+`🆔 Toss ID: ${toss.tossId}
+
+🏏 ${toss.teamA} vs ${toss.teamB}`,
+
+{
+reply_markup: {
+inline_keyboard: [
+
+[
+{
+text: "📋 View Bets",
+callback_data: `viewbets_${toss.tossId}`
+}
+]
+
+]
+}
+}
+
+    );
+
+  }
 
 });
+
 
 // ==== RESULTS===
 
@@ -610,6 +647,47 @@ ctx.reply(
 ✅ Settlement Completed`
 
 );
+
+});
+
+bot.action(/viewbets_(.+)/, async (ctx) => {
+
+if (ctx.from.id !== ADMIN_ID) {
+  return;
+}
+
+const tossId = Number(ctx.match[1]);
+
+const bets = await Bet.find({
+  tossId
+});
+
+if (bets.length === 0) {
+  return ctx.reply("❌ No Bets Found");
+}
+
+let message = `📋 BET REPORT\n\n`;
+
+for (const bet of bets) {
+
+  const user = await User.findOne({
+    telegramId: bet.userId
+  });
+
+  message +=
+
+`🆔 DP${user.dpId}
+
+🏏 Team: ${bet.team}
+💰 Amount: ₹${bet.amount}
+⏰ Time: ${bet.betTime}
+📌 Status: ${bet.status}
+
+`;
+
+}
+
+ctx.reply(message);
 
 });
 
